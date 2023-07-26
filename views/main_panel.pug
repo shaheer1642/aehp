@@ -1,0 +1,181 @@
+doctype html
+html
+  head
+    title Doctor Panel
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    link(rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous")
+    link(rel="stylesheet", href="/stylesheets/style.css")
+    link(rel="icon" href="/images/logo.png")
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="/javascripts/main_panel.js"></script>
+  body.container-fluid
+    header
+      h1.text-center(class="p-3 mb-2 bg-info text-white") Doctor Panel
+        span.pull-right
+          form(method="get" action="/doctor/logout")
+            button.btn.btn-info(type="submit" style="color: white")
+              i.fa.fa-sign-out(style="font-size:22px") Logout
+                span
+        span.pull-left
+          form(method="get" action="/")
+            button.btn.btn-info(type="submit" style="color: white")
+              i.fa.fa-home(style="font-size:22px") Home
+                span
+    div.container(style="padding-bottom: 10px;padding-right: 150px;")
+      div.row
+        div.col
+          div.row
+            div.col(style="text-align: right")
+              label.col-form-label(for="searchByName") Search by Name
+            div.col
+              input.form-control(type="Text" id="searchByName" name="searchByName" placeholder="Patient's Name" oninput=`searchByName(this)`)
+        div.col
+          div.row
+            div.col(style="text-align: right")
+              label.col-form-label(for="searchByMrno") Search by MR#
+            div.col
+              input.form-control(type="Text" id="searchByMrno" name="searchByMrno" placeholder="Patient's MR#" oninput=`searchByMrno(this)`)
+
+    input(type='hidden', id='serverData', value=`${JSON.stringify(data)}`)
+
+    div(class="d-flex flex-column")
+      div.table-wrapper-scroll-y.my-custom-scrollbar.scrollbar.scrollbar-primary
+        table.table.table-striped.table-dark.table-hover(id="patientsTable")
+            thead
+              tr
+                th.col-1(scope="col") MRNo
+                th.col-3(scope="col") Name
+                th.col-2(scope="col") Gender
+                th.col-1(scope="col") Age
+                th.col-3(scope="col") Reason of Visit
+                th.col-3(scope="col") Registeration Date
+                th.col-2(scope="col" id="totalPatients") Total: #{`${data ? data.length : 0}`}
+            tbody
+              if (data)
+                each patient in data
+                  tr(id=`patient${patient.mrno}`)
+                    th.col-1(scope="row") #{patient.mrno}
+                    td #{patient.name}
+                    td.col-2 #{patient.gender}
+                    td.col-1 #{patient.dob}
+                    td #{patient.reason_of_visit}
+                    td #{patient.dor}
+                    td
+                      div.btn-toolbar
+                        form(method="post" action=`/doctor/panel/view?patient=${patient.mrno}`)
+                          button.btn.btn-info(type="submit")
+                            i.fa.fa-navicon 
+                              span
+                        button.btn.btn-info(type="submit" onclick=`editPatientModal(${patient.mrno})`)
+                          i.fa.fa-pencil 
+                            span
+                        button.btn.btn-danger(type="submit" onclick=`deletePatient(${patient.mrno})`)
+                          i.fa.fa-trash 
+                            span
+      button.btn.btn-primary.btn-block.w-100(type="button" data-bs-toggle="modal" data-bs-target="#addPatient")
+        i.fa.fa-plus 
+          span
+
+  div.modal.fade(id="addPatient" tabindex="-1" data-bs-backdrop="static" aria-labelledby="addPatientLabel" aria-hidden="true")
+    div.modal-dialog.modal-dialog-centered
+      div.modal-content
+        div.modal-header
+          h5.modal-title(id="addPatientLabel") Register Patient
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        div.modal-body
+          form(id="addPatientForm")
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="patientName") Name
+                div.col-sm-8
+                  input.form-control(type="Text" id="patientName" placeholder="Enter patient's name" name="patientName" required)
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="patientGender") Gender
+                div.col-sm-8
+                  select.form-control(id="patientGender" name="patientGender" required)
+                    option(selected disabled) Select
+                    option Male
+                    option Female
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="patientReason") Reason of Visit
+                div.col-sm-8
+                  select.form-control(id="patientReason" name="patientReason" required)
+                    option(selected disabled) Select
+                    option Consultation
+                    option Surgery
+                    option Investigation
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="patientDoB") Date of Birth
+                div.col-sm-8
+                  div.input-group.date
+                    input.form-control(type="date" id="patientDoB" name="patientDoB" value="2000-12-31" required)
+                    span.input-group-addon
+                    span.fa.fa-time
+        div.modal-footer.d-flex.flex-column
+          div.btn-toolbar
+            button.btn.btn-primary(type="submit" onclick="addPatient()" id="btnAddPatient") Add
+            button.btn.btn-danger(type="button" data-bs-dismiss="modal") Close
+
+
+  div.modal.fade(id="editPatient" tabindex="-1" data-bs-backdrop="static" aria-labelledby="editPatientLabel" aria-hidden="true")
+    div.modal-dialog.modal-dialog-centered
+      div.modal-content
+        div.modal-header
+          h5.modal-title(id="editPatientLabel") Edit Patient Detail
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        div.modal-body
+          form(id="editPatientForm")
+            div.mb-3
+              div.row(style="text-align: center")
+                label(id="patientMRNoEdit" style="font-weight: bold;") MR# 
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="patientNameEdit") Name
+                div.col-sm-8
+                  input.form-control(type="Text" id="patientNameEdit" placeholder="Enter patient's name" required)
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="patientGenderEdit") Gender
+                div.col-sm-8
+                  select.form-control(id="patientGenderEdit" required)
+                    option(selected disabled) Select
+                    option Male
+                    option Female
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="patientReasonEdit") Reason of Visit
+                div.col-sm-8
+                  select.form-control(id="patientReasonEdit" required)
+                    option(selected disabled) Select
+                    option Consultation
+                    option Surgery
+                    option Investigation
+        div.modal-footer.d-flex.flex-column
+          div.btn-toolbar
+            button.btn.btn-primary(type="submit" onclick="editPatient()" id="btnEditPatient") Edit
+            button.btn.btn-danger(type="button" data-bs-dismiss="modal") Close
+
+  style.
+    .my-custom-scrollbar {
+      position: relative;
+      max-height: 80vh;
+      overflow: auto;
+    }
+    .table-wrapper-scroll-y {
+      display: block;
+    }
+    table {
+      border-collapse:collapse; 
+      table-layout:fixed; 
+      width:310px;
+    }
+    table td {
+      word-wrap:break-word;
+    }

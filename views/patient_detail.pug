@@ -1,0 +1,525 @@
+doctype html
+html
+  head
+    title Patient Detail
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    link(rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous")
+    link(rel="stylesheet", href="/stylesheets/style.css")
+    link(rel="icon" href="/images/logo.png")
+    <script src="/javascripts/patient_detail.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  body.container-fluid
+    header
+      div(class="p-3 mb-2 bg-info text-white")
+        h1.text-center Patient Detail
+          span.pull-left
+            form(method="get" action="/doctor/panel")
+              button.btn.btn-info(type="submit" style="color: white")
+                i.fa.fa-arrow-circle-left(style="font-size:32px")
+                  span
+      div.container-fluid
+        div.row
+          div.col-6.text-break.p-5
+            div.container.p-3.my-3.bg-dark.text-white(overflow-wrap="break-word")
+              p.p2.text-center MR##{data.patient.mrno}
+              p.p3.text-left Name: #{data.patient.name}
+              div.row
+                div.col
+                  p.p3.text-left Gender: #{data.patient.gender}
+                div.col 
+                  p.p3.text-left Age: #{data.patient.dob}
+              p.p3.text-left Reason of visit: #{data.patient.reason_of_visit}
+              p.p3.text-left Registeration Date: #{data.patient.dor}
+          div.col-6
+            table.table.table-striped.table-dark.table-hover(id="invoiceTable")
+              caption Invoice
+              thead
+                tr
+                  th.col-1(scope="col") ID
+                  th.col-3(scope="col") Payment
+                  th.col-2(scope="col") Discount
+                  th.col-3(scope="col") Total
+                  th.col-3(scope="col") Date
+                  th.col-2(scope="col")
+              tbody
+                if (data.invoices)
+                  each invoice in data.invoices
+                    tr(id=`invoice${invoice.invoice_id}`)
+                      th.col-1(scope="row") #{invoice.invoice_id}
+                      td.col-3 #{invoice.payment}
+                      td.col-3 #{invoice.discount}
+                      td.col-3 #{invoice.total}
+                      td.col-2 #{invoice.dop}
+                      td.col-3
+                        div.btn-toolbar
+                          button.btn.btn-danger(type="button" onclick=`deleteInvoice(${data.patient.mrno},${invoice.invoice_id})`)
+                            i.fa.fa-trash 
+                              span
+            button.btn.btn-primary.btn-block.w-100(type="button" data-bs-toggle="modal" data-bs-target="#addInvoice")
+              i.fa.fa-plus 
+                span
+    div(class="d-flex flex-column")
+      table.table.table-striped.table-dark.table-hover(id="consultationTable")
+        caption Consultation Record
+        thead
+          tr
+            th.col-1(scope="col") ID
+            th.col-3(scope="col") Complaint
+            th.col-3(scope="col") Examination
+            th.col-3(scope="col") Advice
+            th.col-3(scope="col") Image
+            th.col-2(scope="col") Date
+            th.col-3(scope="col")
+        tbody
+          if (data.consultations)
+            each consultation in data.consultations
+              tr(id=`consultation${consultation.consult_id}`)
+                th.col-1(scope="row") #{consultation.consult_id}
+                td.col-3 #{consultation.complaint}
+                td.col-3 #{consultation.examination}
+                td.col-3 #{consultation.advice}
+                if (consultation.image)
+                  td.col-3 <img src=#{consultation.image} width=100% height=auto>
+                else 
+                  td.col-3 
+                td.col-2 #{consultation.doc}
+                td.col-3
+                  div.btn-toolbar
+                    button.btn.btn-info(type="button" onclick=`viewConsultationModal(${data.patient.mrno},${consultation.consult_id})`)
+                      i.fa.fa-navicon 
+                        span
+                    button.btn.btn-danger(type="submit" onclick=`deleteConsultation(${data.patient.mrno},${consultation.consult_id})`)
+                      i.fa.fa-trash 
+                        span
+      button.btn.btn-primary.btn-block.w-100(type="button" data-bs-toggle="modal" data-bs-target="#addConsultation")
+        i.fa.fa-plus 
+          span
+      div.row 
+        div.col 
+          table.table.table-striped.table-dark.table-hover(id="investigationTable")
+            caption Investigation Record
+            thead
+              tr
+                th.col-1(scope="col") ID
+                th(scope="col") Type
+                th(scope="col") Date
+                th(scope="col")
+            tbody
+              if (data.investigations)
+                each investigation in data.investigations
+                  tr(id=`investigation${investigation.invest_id}`)
+                    th.col-1(scope="row") #{investigation.invest_id}
+                    td #{investigation.invest_type}
+                    td #{investigation.doi}
+                    td
+                      div.btn-toolbar
+                        button.btn.btn-danger(type="submit" onclick=`deleteInvestigation(${data.patient.mrno},${investigation.invest_id})`)
+                          i.fa.fa-trash 
+                            span
+          button.btn.btn-primary.btn-block.w-100(type="button" data-bs-toggle="modal" data-bs-target="#addInvestigation")
+            i.fa.fa-plus 
+              span
+        div.col
+          div.table-wrapper-scroll-y.my-custom-scrollbar.scrollbar.scrollbar-primary
+            table.table.table-striped.table-dark.table-hover(id="surgeryTable")
+              caption Surgery Record
+              thead
+                tr
+                  th.col-1(scope="col") ID
+                  th(scope="col") Type
+                  th(scope="col") Surgeon
+                  th(scope="col") Date
+                  th(scope="col")
+              tbody
+                if (data.surgeries)
+                  each surgery in data.surgeries
+                    tr(id=`surgery${surgery.surgery_id}`)
+                      th.col-1(scope="row") #{surgery.surgery_id}
+                      td #{surgery.surgery_type}
+                      td #{surgery.surgeon_name}
+                      td #{surgery.dos}
+                      td
+                        div.btn-toolbar
+                          button.btn.btn-danger(type="submit" onclick=`deleteSurgery(${data.patient.mrno},${surgery.surgery_id})`)
+                            i.fa.fa-trash 
+                              span
+          button.btn.btn-primary.btn-block.w-100(type="button" data-bs-toggle="modal" data-bs-target="#addSurgery")
+            i.fa.fa-plus 
+              span
+
+  div.modal.fade(id="addConsultation" tabindex="-1" data-bs-backdrop="static" aria-labelledby="addConsultationLabel" aria-hidden="true")
+    div.modal-dialog.modal-dialog-centered
+      div.modal-content
+        div.modal-header
+          h5.modal-title(id="addConsultationLabel") New consultation
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        div.modal-body
+          form(id="addConsultationForm" enctype="multipart/form-data")
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="complaint") Complaint
+                div.col-sm-8
+                  input.form-control(type="Text" id="complaint" name="complaint" placeholder="Patient's complaint" required)
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="examination") Examination
+                div.col-sm-8
+                  input.form-control(type="Text" id="examination" name="examination" placeholder="Examination" required)
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="advice") Advice
+                div.col-sm-8
+                  input.form-control(type="Text" id="advice" name="advice" placeholder="Doctor's advice" required)
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="image") Report image
+                div.col-sm-8
+                  input.form-control(type="file" accept="image/*" id="image" name="image" placeholder="Insert report image")
+        div.modal-footer.d-flex.flex-column
+          div.btn-toolbar
+            button.btn.btn-primary(type="submit" onclick=`addConsultation(${data.patient.mrno})` id="btnAddConsultation") Add
+            button.btn.btn-danger(type="button" data-bs-dismiss="modal") Close
+
+  div.modal.fade(id="viewConsultation" tabindex="-1" data-bs-backdrop="static" aria-labelledby="viewConsultationLabel" aria-hidden="true")
+    div.modal-dialog.modal-dialog-consult.modal-dialog-centered
+      div.modal-content
+        div.modal-header
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        div.modal-body
+          header
+            h2.text-center(class="p-3 mb-2 bg-light") Consultation Detail
+            div.container-fluid
+              div.row
+                div.col-6.text-break
+                  div.container.p-3.my-3.bg-dark.text-white(overflow-wrap="break-word")
+                    div.row.text-center
+                      div.col
+                        p.p2 MR##{data.patient.mrno}
+                      div.col
+                        p.p2(id="consultation_consult_id") Consultation ID: 
+                    p.p1.text-left(id="consultation_complaint") Complaint:
+                    p.p1.text-left(id="consultation_examination") Examination:
+                    p.p1.text-left(id="consultation_advice") Advice:
+                    p.p1.text-left(id="consultation_doc") Date:
+                div.col-6
+                  img(width="80%" height="auto" id="consultation_image")
+          div.row 
+            div.col 
+              table.table.table-striped.table-dark.table-hover(id="treatmentTable")
+                caption Treatment Record
+                thead
+                  tr
+                    th(scope="col") ID
+                    th(scope="col") Medicine
+                    th(scope="col") Str
+                    th(scope="col") Frq
+                    th(scope="col") Dur
+                    th(scope="col")
+                  tbody
+              button.btn.btn-primary.btn-block.w-100(type="button" data-bs-toggle="modal" data-bs-target="#addTreatment")
+                i.fa.fa-plus 
+                  span
+            div.col
+              table.table.table-striped.table-dark.table-hover(id="prescriptionTable")
+                caption Glasses Prescription
+                thead
+                  tr
+                    th(scope="col") ID
+                    th(scope="col") Type
+                    th(scope="col" colspan="2" border="1px solid") Spherical
+                    th(scope="col" colspan="2" border="1px solid") Cylindrical
+                    th(scope="col" colspan="2" border="1px solid") Axis
+                    th(scope="col" colspan="2" border="1px solid") Visual Acuity
+                    th(scope="col")
+                  tr 
+                    th(scope="col")
+                    th(scope="col")
+                    th(scope="col" border="1px solid") L
+                    th(scope="col" border="1px solid") R
+                    th(scope="col" border="1px solid") L
+                    th(scope="col" border="1px solid") R
+                    th(scope="col" border="1px solid") L
+                    th(scope="col" border="1px solid") R
+                    th(scope="col" border="1px solid") L
+                    th(scope="col" border="1px solid") R
+                    th(scope="col")
+                tbody
+              button.btn.btn-primary.btn-block.w-100(type="button" data-bs-toggle="modal" data-bs-target="#addPrescription")
+                i.fa.fa-plus 
+                  span
+        div.modal-footer.d-flex.flex-column
+          div.btn-toolbar
+            button.btn.btn-danger(type="button" data-bs-dismiss="modal") Close
+
+  div.modal.fade(id="addInvestigation" tabindex="-1" data-bs-backdrop="static" aria-labelledby="addInvestigationLabel" aria-hidden="true")
+    div.modal-dialog.modal-dialog-centered
+      div.modal-content
+        div.modal-header
+          h5.modal-title(id="addInvestigationLabel") New investigation
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        div.modal-body
+          form(id="addInvestigationForm")
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="invest_type") Type
+                div.col-sm-8
+                  select.form-control(id="invest_type" name="invest_type" required)
+                    option(selected disabled) Select
+                    option Pentacam
+                    option Crovis
+                    option OCT
+                    option Biometry
+        div.modal-footer.d-flex.flex-column
+          div.btn-toolbar
+            button.btn.btn-primary(type="submit" onclick=`addInvestigation(${data.patient.mrno})` id="btnAddInvestigation") Add
+            button.btn.btn-danger(type="button" data-bs-dismiss="modal") Close
+
+  div.modal.fade(id="addSurgery" tabindex="-1" data-bs-backdrop="static" aria-labelledby="addSurgeryLabel" aria-hidden="true")
+    div.modal-dialog.modal-dialog-centered
+      div.modal-content
+        div.modal-header
+          h5.modal-title(id="addSurgeryLabel") New surgery
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        div.modal-body
+          form(id="addSurgeryForm")
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="surgeon_name") Surgeon
+                div.col-sm-8
+                  input.form-control(type="Text" id="surgeon_name" name="surgeon_name" placeholder="Enter surgeon's name"  required)
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="surgery_type") Type
+                div.col-sm-8
+                  select.form-control(id="surgery_type" name="surgery_type" required) 
+                    option(selected disabled) Select
+                    option PRK
+                    option Femto Lasik
+                    option Phaco
+                    option CXL
+        div.modal-footer.d-flex.flex-column
+          div.btn-toolbar
+            button.btn.btn-primary(type="submit" onclick=`addSurgery(${data.patient.mrno})` id="btnAddSurgery") Add
+            button.btn.btn-danger(type="button" data-bs-dismiss="modal") Close
+    
+  div.modal.fade(id="addTreatment" tabindex="-1" data-bs-backdrop="static" aria-labelledby="addTreatmentLabel" aria-hidden="true")
+    div.modal-dialog.modal-dialog-centered
+      div.modal-content
+        div.modal-header
+          h5.modal-title(id="addTreatmentLabel") New medicine
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        div.modal-body.modal-body-consult
+          form(id="addTreatmentForm")
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="med_name") Name
+                div.col-sm-8
+                  input.form-control(type="Text" id="med_name" name="med_name" placeholder="Enter medicine name"  required)
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="med_str1") Strength
+                div.col-sm-4
+                  input.form-control(type="Text" id="med_str1" name="med_str1" placeholder="Enter medicine strength" required)
+                div.col-sm-4
+                  select.form-control(id="med_str2" name="med_str2" required)
+                    option(selected) Capsule(s)
+                    option Tablet(s)
+                    option ml
+                    option mg
+                    option IU
+                    option Drop
+                    option Tablespoon
+                    option Teaspoon
+                    option Unit(s)
+                    option Puff(s)
+                    option Sachet
+                    option Injection
+                    option Dose Step
+                    option Dropper
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="med_frq") Frequency
+                div.col-sm-8
+                  select.form-control(id="med_frq" name="med_frq" size="5" required) 
+                    option(selected) Only Once
+                    option Once a day
+                    option Twice a day
+                    option Thrice a day
+                    option Four times a day
+                    option Before Bed
+                    option Every hour
+                    option Every 2 hours
+                    option Every 3 hours
+                    option Every 4 hours
+                    option Every 6 hours
+                    option Every 8 hours
+                    option Every 12 hours
+                    option Every Other day
+                    option Every 3 Days
+                    option Once a week
+                    option Twice a week
+                    option Thrice a week
+                    option Every 10 Days
+                    option Every 15 Days
+                    option Once a Month
+                    option Once in 3 Months
+                    option Once a Year
+                    option Every Morning
+                    option Every Evening
+                    option Every Night
+                    option If needed
+                    option Before Breakfast
+                    option Continuosly
+                    option Before Lunch
+                    option After Lunch
+                    option Before Meal
+                    option After Meal
+                    option Before Dinner
+                    option After Dinner
+                    option As Advised
+                    option Twice a month
+                    option After Breakfast
+                    option Before Breakfast and Lunch
+                    option Before Lunch and Dinner
+                    option Before breakfast and dinner
+                    option After Breakfast and Lunch
+                    option After Lunch and Dinner
+                    option After breakfast and dinner
+                    option Before breakfast, Lunch & Dinner
+                    option After breakfast, Lunch & Dinner
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="med_dur1") Duration
+                div.col-sm-4
+                  input.form-control(type="Text" id="med_dur1" name="med_dur1" placeholder="Enter medicine duration" required)
+                div.col-sm-4
+                  select.form-control(id="med_dur2" name="med_dur2" required)
+                    option(selected) Day(s)
+                    option Week(s)
+                    option Month(s)
+                    option Continuosly
+                    option When Required
+        div.modal-footer.d-flex.flex-column
+          div.btn-toolbar
+            button.btn.btn-primary(type="submit" onclick=`addTreatment(${data.patient.mrno})` id="btnAddTreatment") Add
+            button.btn.btn-danger(type="button" data-bs-dismiss="modal") Close
+
+  div.modal.fade(id="addPrescription" tabindex="-1" data-bs-backdrop="static" aria-labelledby="addPrescriptionLabel" aria-hidden="true")
+    div.modal-dialog.modal-dialog-centered
+      div.modal-content
+        div.modal-header
+          h5.modal-title(id="addPrescriptionLabel") New Glasses Prescription
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        div.modal-body
+          form(id="addPrescriptionForm")
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="presc_type") Type
+                div.col-sm-8
+                  select.form-control(id="presc_type" name="presc_type" required) 
+                    option(selected) New
+                    option Old
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="l_spherical") Spherical
+                div.col-sm-4
+                  input.form-control(type="number" id="l_spherical" name="l_spherical" placeholder="Left" required)
+                div.col-sm-4
+                  input.form-control(type="number" id="r_spherical" name="r_spherical" placeholder="Right" required)
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="l_cylindrical") Cylindrical
+                div.col-sm-4
+                  input.form-control(type="number" id="l_cylindrical" name="l_cylindrical" placeholder="Left" required)
+                div.col-sm-4
+                  input.form-control(type="number" id="r_cylindrical" name="r_cylindrical" placeholder="Right" required)
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="l_axis") Axis
+                div.col-sm-4
+                  input.form-control(type="number" id="l_axis" name="l_axis" placeholder="Left" required)
+                div.col-sm-4
+                  input.form-control(type="number" id="r_axis" name="r_axis" placeholder="Right" required)
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="l_visual_acuity") Visual Acuity
+                div.col-sm-4
+                  input.form-control(type="number" id="l_visual_acuity" name="l_visual_acuity" placeholder="Left" required)
+                div.col-sm-4
+                  input.form-control(type="number" id="r_visual_acuity" name="r_visual_acuity" placeholder="Right" required)
+        div.modal-footer.d-flex.flex-column
+          div.btn-toolbar
+            button.btn.btn-primary(type="submit" onclick=`addPrescription(${data.patient.mrno})` id="btnAddPrescription") Add
+            button.btn.btn-danger(type="button" data-bs-dismiss="modal") Close
+
+  div.modal.fade(id="addInvoice" tabindex="-1" data-bs-backdrop="static" aria-labelledby="addInvoiceLabel" aria-hidden="true")
+    div.modal-dialog.modal-dialog-centered
+      div.modal-content
+        div.modal-header
+          h5.modal-title(id="addInvoiceLabel") New invoice
+          button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+        div.modal-body
+          form(id="addInvoiceForm")
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="payment") Payment
+                div.col-sm-8
+                  input.form-control(type="number" id="payment" name="payment" placeholder="Enter amount" required)
+            div.mb-3
+              div.row
+                label.col-sm-4.col-form-label(for="discount") Discount %
+                div.col-sm-8
+                  input.form-control(type="number" id="discount" name="discount" placeholder="Enter discount %"  min="0" max="100" value="0" required)
+        div.modal-footer.d-flex.flex-column
+          div.btn-toolbar
+            button.btn.btn-primary(type="submit" onclick=`addInvoice(${data.patient.mrno})` id="btnAddInvoice") Add
+            button.btn.btn-danger(type="button" data-bs-dismiss="modal") Close
+
+  style.
+    body {
+      background-color: white;
+    }
+    p.p1 {
+      font-size: 15px
+    }
+    p.p2 {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    p.p3 {
+      font-size: 20px
+    }
+
+    caption {
+      caption-side: top;
+      font-size: 30px;
+      color: #1C1D34;
+      font-family: Lucida;
+    }
+
+    table {
+      border-collapse:collapse; 
+      table-layout:fixed; 
+      min-width: 30vh;
+    }
+
+    table td {
+      word-wrap: break-word;
+      border: 1px solid gray;
+    }
+    table th {
+      border: 1px solid #458fa3;
+    }
+
+    .modal .modal-body-consult { /* Vertical scrollbar if necessary */
+      max-height: 80%;
+      overflow-y: auto;
+    }
+
+    body .modal-dialog-consult { /* Width */
+      max-width: 95%;
+    }
